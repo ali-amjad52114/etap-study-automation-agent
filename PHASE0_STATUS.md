@@ -29,7 +29,7 @@ Phase 0 establishes the contracts and dependencies required by the MVP. It does 
 - Load Flow `Base Case` completed with persisted session-owned screenshot evidence.
 - ETAP's exact coordination target was discovered and frozen as `Main Bus - Feeder 1`.
 - Live integration fixes were validated for H observation-event screenshot discovery, production screenshot bucket handling, SDK event sort arguments, and iterator-based resource downloads.
-- The strongest preserved run is `20260712T182915389728Z`: OPEN_PROJECT and LOAD_FLOW completed; COORDINATION failed closed before the exact view-name correction; ARC_FLASH and REPORT did not run.
+- The strongest preserved run is `20260712T182915389728Z`: OPEN_PROJECT and LOAD_FLOW completed with screenshots; COORDINATION failed closed before the exact view-name correction, and its corrected checkpoint-only retry was blocked before ETAP control by exhausted H bridge quota; ARC_FLASH and REPORT did not run.
 - Further live runs are temporarily blocked by H session quota (`limit=10`, `active=10`, `available=0`) even though the session list reports no active sessions.
 
 ## Deferred by request
