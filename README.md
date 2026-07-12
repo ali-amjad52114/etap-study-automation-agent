@@ -8,6 +8,8 @@ Implementation is governed by the test-gated [`MVP_MULTI_AGENT_PLAN.md`](MVP_MUL
 
 Phase 0 implementation progress and deferred live-desktop gates are tracked in [`PHASE0_STATUS.md`](PHASE0_STATUS.md).
 
+The scoped multi-agent plan for useful ArcFlash-reference reliability ideas is [`ARCFLASH_REFERENCE_ADOPTION_PLAN.md`](ARCFLASH_REFERENCE_ADOPTION_PLAN.md).
+
 ## MVP goal
 
 The MVP operates one approved, already-built ETAP demo project. It does not create or modify the electrical model.

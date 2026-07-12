@@ -2,6 +2,8 @@
 
 This plan implements only the MVP specified in [`README.md`](README.md). The README is the product source of truth. If this plan and the README conflict, the README wins.
 
+Selective reliability ideas from the local ArcFlash reference are planned in [`ARCFLASH_REFERENCE_ADOPTION_PLAN.md`](ARCFLASH_REFERENCE_ADOPTION_PLAN.md). That plan may harden this MVP but may not expand its product scope.
+
 ## Definition of done
 
 The MVP is done only when one approved, existing ETAP demo project can be reset and run three consecutive times through this exact sequence:
