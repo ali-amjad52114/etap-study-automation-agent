@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+src/etap_automation/__init__.py
+src/etap_automation/models.py
+src/etap_automation/settings.py
+src/etap_study_automation.egg-info/PKG-INFO
+src/etap_study_automation.egg-info/SOURCES.txt
+src/etap_study_automation.egg-info/dependency_links.txt
+src/etap_study_automation.egg-info/requires.txt
+src/etap_study_automation.egg-info/top_level.txt
+src/h_operator/__init__.py
+src/h_operator/adapter.py
+src/h_operator/fake_client.py
+tests/test_foundation.py
+tests/test_phase0_verification.py

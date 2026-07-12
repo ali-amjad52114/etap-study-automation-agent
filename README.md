@@ -6,6 +6,8 @@ Automate a fixed sequence of engineering studies in an existing ETAP project, ca
 
 Implementation is governed by the test-gated [`MVP_MULTI_AGENT_PLAN.md`](MVP_MULTI_AGENT_PLAN.md).
 
+Phase 0 implementation progress and deferred live-desktop gates are tracked in [`PHASE0_STATUS.md`](PHASE0_STATUS.md).
+
 ## MVP goal
 
 The MVP operates one approved, already-built ETAP demo project. It does not create or modify the electrical model.

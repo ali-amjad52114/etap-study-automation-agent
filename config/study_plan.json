@@ -1,0 +1,19 @@
+{
+  "project": "EXAMPLE",
+  "project_file": "C:\\ETAP Demo\\Example-ANSI\\EXAMPLE.OTI",
+  "studies": [
+    {
+      "type": "load_flow",
+      "study_case": "Base Case"
+    },
+    {
+      "type": "coordination",
+      "view": "Main Feeder"
+    },
+    {
+      "type": "arc_flash",
+      "study_case": "Normal Operation"
+    }
+  ]
+}
+

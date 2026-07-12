@@ -1,0 +1,8 @@
+Metadata-Version: 2.4
+Name: etap-study-automation
+Version: 0.1.0
+Summary: Fixed-sequence ETAP study automation MVP
+Requires-Python: >=3.11
+Requires-Dist: hai-agents[desktop]<1.1,>=1.0.4
+Provides-Extra: test
+Requires-Dist: pytest<9,>=8; extra == "test"
