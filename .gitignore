@@ -1,0 +1,7 @@
+.rocketride/
+.claude/
+.cursor/
+Reference/
+.env
+.env.*
+!.env.example
