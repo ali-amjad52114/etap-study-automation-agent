@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import base64
 from typing import Any, Mapping
 from uuid import uuid4
 
 
 # Structurally valid PNG framing sufficient for the adapter's dependency-free
 # header validation. Tests that decode pixels can inject their own resource.
-FAKE_PNG = bytes.fromhex(
-    "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489"
+FAKE_PNG = base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
 )
 
 
@@ -22,6 +23,8 @@ class FakeSessionScenario:
         "status": "completed",
         "screenshot_key": "open-project.png",
         "error": None,
+        "observed_identity": "EXAMPLE",
+        "visible_confirmation": True,
     })
     resources: Mapping[tuple[str, str], bytes] = field(
         default_factory=lambda: {("screenshots", "open-project.png"): FAKE_PNG}
@@ -40,9 +43,19 @@ class FakeHClient:
         self.cancelled: list[str] = []
         self._positions: dict[str, int] = {}
 
-    def create_session(self, *, agent: Mapping[str, Any], messages: str) -> str:
+    def create_session(
+        self, *, agent: Mapping[str, Any], messages: str,
+        max_steps: int, max_time_s: int, queue: bool,
+    ) -> str:
         session_id = str(uuid4())
-        self.created.append({"id": session_id, "agent": agent, "messages": messages})
+        self.created.append({
+            "id": session_id,
+            "agent": agent,
+            "messages": messages,
+            "max_steps": max_steps,
+            "max_time_s": max_time_s,
+            "queue": queue,
+        })
         self._positions[session_id] = 0
         return session_id
 

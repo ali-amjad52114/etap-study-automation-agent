@@ -2,7 +2,7 @@
 
 Automate a fixed sequence of engineering studies in an existing ETAP project, capture evidence after each study, and generate a draft report for engineering review.
 
-> **Project status:** planning and reference stage. This repository currently contains ETAP and H computer-use documentation; it does not yet contain an executable study runner.
+> **Project status:** code-only MVP core implemented. Contracts, fixed prompts, H adapter boundaries, checkpoint orchestration, evidence integrity, retry/resume logic, and draft PDF reporting are covered by offline tests. Live H-controlled ETAP checkpoints and the dedicated-machine acceptance runs remain deferred.
 
 Implementation is governed by the test-gated [`MVP_MULTI_AGENT_PLAN.md`](MVP_MULTI_AGENT_PLAN.md).
 
@@ -146,17 +146,24 @@ The ETAP demo references confirm that Load Flow, protective device coordination 
 
 Optional voice commands and drawing-to-model automation are future phases. They must plug into the structured study-plan boundary rather than replace the runner.
 
-## Proposed implementation layout
-
-The following directories are recommended when implementation begins; they do not exist yet:
+## Implementation layout
 
 ```text
 config/study_plan.json     # Approved fixed study plan
-src/orchestrator/          # Checkpoint state machine and retry policy
 src/h_operator/            # H session and local-desktop integration
-src/reporting/             # Draft report generation
+src/orchestrator/          # Fixed state machine, persistence, and retry policy
+src/reporting/             # Evidence-driven draft PDF generation
 evidence/                  # Timestamped screenshots and step results
-tests/                     # Contract, state-machine, and report tests
+reports/                   # Generated draft reports
+tests/                     # Contract, failure-injection, workflow, and report tests
+```
+
+Install and run the offline suite:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[test]"
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
 ## Suggested next milestone

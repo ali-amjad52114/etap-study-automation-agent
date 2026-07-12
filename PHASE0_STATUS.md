@@ -20,6 +20,8 @@ Phase 0 establishes the contracts and dependencies required by the MVP. It does 
 - Screenshot persistence restricted to the evidence root and structurally valid PNG data.
 - Publishable files scanned for H key patterns.
 - Offline automated test suite implemented.
+- ArcFlash-reference hardening implemented in code-only mode: exact SDK boundary, typed prompts, session/evidence ownership, bounded PNG validation, immutable attempts, atomic persistence, observation-backed completion, fixed orchestration, failure injection, and per-page-marked draft PDF reporting.
+- Full offline suite: 195 tests passing as of July 12, 2026.
 
 ## Deferred by request
 

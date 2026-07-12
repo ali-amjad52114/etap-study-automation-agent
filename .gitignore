@@ -9,6 +9,8 @@ Reference/
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.test-tmp/
 *.egg-info/
 evidence/
 reports/
+tmp/

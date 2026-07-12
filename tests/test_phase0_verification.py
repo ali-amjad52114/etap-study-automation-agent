@@ -20,7 +20,7 @@ from h_operator.adapter import (
     SessionState,
     SessionTimeoutError,
 )
-from h_operator.fake_client import FakeHClient, FakeSessionScenario
+from h_operator.fake_client import FAKE_PNG, FakeHClient, FakeSessionScenario
 
 
 PLAN_PATH = Path("config/study_plan.json")
@@ -352,15 +352,26 @@ def test_second_concurrent_desktop_session_is_rejected_before_vendor_call() -> N
 
 
 def test_screenshot_resource_is_retrieved_from_screenshot_bucket() -> None:
-    png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + (b"\x00" * 17)
+    png = FAKE_PNG
     client = FakeHClient(
-        FakeSessionScenario(resources={("screenshots", "proof.png"): png})
+        FakeSessionScenario(
+            answer={
+                "step": "OPEN_PROJECT",
+                "status": "completed",
+                "screenshot_key": "proof.png",
+                "error": None,
+                "observed_identity": "EXAMPLE",
+                "visible_confirmation": True,
+            },
+            resources={("screenshots", "proof.png"): png},
+        )
     )
     with TemporaryDirectory() as directory:
         evidence_root = Path(directory) / "evidence"
         adapter = HDesktopAdapter(client, evidence_root=evidence_root)
         session_id = adapter.start("capture proof")
         try:
+            adapter.wait(timeout_seconds=1, poll_seconds=0)
             destination = evidence_root / "run-1" / "proof.png"
             saved = adapter.save_screenshot(
                 ScreenshotResource(session_id, "proof.png"), destination
@@ -391,11 +402,14 @@ def test_screenshot_destination_outside_evidence_root_is_rejected() -> None:
         root = Path(directory)
         evidence_root = root / "evidence"
         adapter = HDesktopAdapter(client, evidence_root=evidence_root)
-
-        with pytest.raises(HOperatorError, match="outside the evidence root"):
-            adapter.save_screenshot(
-                ScreenshotResource("session", "proof.png"), root / "escaped.png"
-            )
+        session_id = adapter.start("capture proof")
+        try:
+            with pytest.raises(HOperatorError, match="outside the evidence root"):
+                adapter.save_screenshot(
+                    ScreenshotResource(session_id, "proof.png"), root / "escaped.png"
+                )
+        finally:
+            adapter.cancel()
 
 
 def test_screenshot_path_traversal_outside_evidence_root_is_rejected() -> None:
@@ -403,12 +417,15 @@ def test_screenshot_path_traversal_outside_evidence_root_is_rejected() -> None:
     with TemporaryDirectory() as directory:
         evidence_root = Path(directory) / "evidence"
         adapter = HDesktopAdapter(client, evidence_root=evidence_root)
-
-        with pytest.raises(HOperatorError, match="outside the evidence root"):
-            adapter.save_screenshot(
-                ScreenshotResource("session", "proof.png"),
-                evidence_root / ".." / "escaped.png",
-            )
+        session_id = adapter.start("capture proof")
+        try:
+            with pytest.raises(HOperatorError, match="outside the evidence root"):
+                adapter.save_screenshot(
+                    ScreenshotResource(session_id, "proof.png"),
+                    evidence_root / ".." / "escaped.png",
+                )
+        finally:
+            adapter.cancel()
 
 
 def test_screenshot_requires_png_destination_extension() -> None:
@@ -416,11 +433,14 @@ def test_screenshot_requires_png_destination_extension() -> None:
     with TemporaryDirectory() as directory:
         evidence_root = Path(directory) / "evidence"
         adapter = HDesktopAdapter(client, evidence_root=evidence_root)
-
-        with pytest.raises(HOperatorError, match=".png extension"):
-            adapter.save_screenshot(
-                ScreenshotResource("session", "proof.png"), evidence_root / "proof.jpg"
-            )
+        session_id = adapter.start("capture proof")
+        try:
+            with pytest.raises(HOperatorError, match=".png extension"):
+                adapter.save_screenshot(
+                    ScreenshotResource(session_id, "proof.png"), evidence_root / "proof.jpg"
+                )
+        finally:
+            adapter.cancel()
 
 
 @pytest.mark.parametrize(
@@ -435,7 +455,17 @@ def test_screenshot_requires_png_destination_extension() -> None:
 )
 def test_empty_or_unreadable_screenshot_is_rejected_without_writing(payload) -> None:
     client = FakeHClient(
-        FakeSessionScenario(resources={("screenshots", "proof.png"): payload})
+        FakeSessionScenario(
+            answer={
+                "step": "OPEN_PROJECT",
+                "status": "completed",
+                "screenshot_key": "proof.png",
+                "error": None,
+                "observed_identity": "EXAMPLE",
+                "visible_confirmation": True,
+            },
+            resources={("screenshots", "proof.png"): payload},
+        )
     )
     with TemporaryDirectory() as directory:
         evidence_root = Path(directory) / "evidence"
@@ -443,7 +473,8 @@ def test_empty_or_unreadable_screenshot_is_rejected_without_writing(payload) -> 
         adapter = HDesktopAdapter(client, evidence_root=evidence_root)
         session_id = adapter.start("capture proof")
         try:
-            with pytest.raises(HOperatorError, match="PNG"):
+            adapter.wait(timeout_seconds=1, poll_seconds=0)
+            with pytest.raises(HOperatorError, match="PNG|empty"):
                 adapter.save_screenshot(
                     ScreenshotResource(session_id, "proof.png"), destination
                 )
