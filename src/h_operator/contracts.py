@@ -60,7 +60,7 @@ class CheckpointCommand:
         if self.step is OperatorStep.COORDINATION:
             if not view or case:
                 raise ValueError("COORDINATION requires only a view")
-            if view != "Main Feeder":
+            if view != "Main Bus - Feeder 1":
                 raise ValueError("COORDINATION requires the approved view")
 
     @property

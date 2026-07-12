@@ -7,7 +7,7 @@ Phase 0 establishes the contracts and dependencies required by the MVP. It does 
 - Approved project frozen to `C:\ETAP Demo\Example-ANSI\EXAMPLE.OTI` (`EXAMPLE`).
 - Fixed study order and selectors validated:
   - Load Flow: `Base Case`
-  - Coordination: `Main Feeder`
+  - Coordination: `Main Bus - Feeder 1`
   - Arc Flash: `Normal Operation`
 - H region configured as US.
 - H API authentication and quota verified against the US service.
@@ -21,11 +21,20 @@ Phase 0 establishes the contracts and dependencies required by the MVP. It does 
 - Publishable files scanned for H key patterns.
 - Offline automated test suite implemented.
 - ArcFlash-reference hardening implemented in code-only mode: exact SDK boundary, typed prompts, session/evidence ownership, bounded PNG validation, immutable attempts, atomic persistence, observation-backed completion, fixed orchestration, failure injection, and per-page-marked draft PDF reporting.
-- Full offline suite: 195 tests passing as of July 12, 2026.
+- Full offline suite: 208 tests passing as of July 12, 2026.
+
+## Live acceptance progress
+
+- H US local-desktop sessions successfully opened and visibly verified project `EXAMPLE`.
+- Load Flow `Base Case` completed with persisted session-owned screenshot evidence.
+- ETAP's exact coordination target was discovered and frozen as `Main Bus - Feeder 1`.
+- Live integration fixes were validated for H observation-event screenshot discovery, production screenshot bucket handling, SDK event sort arguments, and iterator-based resource downloads.
+- The strongest preserved run is `20260712T182915389728Z`: OPEN_PROJECT and LOAD_FLOW completed; COORDINATION failed closed before the exact view-name correction; ARC_FLASH and REPORT did not run.
+- Further live runs are temporarily blocked by H session quota (`limit=10`, `active=10`, `available=0`) even though the session list reports no active sessions.
 
 ## Deferred by request
 
-The following live desktop gates are intentionally deferred:
+The following live desktop gates remain incomplete:
 
 - H-controlled ETAP desktop session;
 - visible ETAP project-name verification;

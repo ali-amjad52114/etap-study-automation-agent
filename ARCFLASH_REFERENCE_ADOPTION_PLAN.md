@@ -172,7 +172,7 @@ OperatorOutcome
   error
 ```
 
-`CheckpointCommand` must reject irrelevant selectors and additional fields. For example, `COORDINATION` accepts only `view=Main Feeder`; it cannot accept a study case or calculation action.
+`CheckpointCommand` must reject irrelevant selectors and additional fields. For example, `COORDINATION` accepts only `view=Main Bus - Feeder 1`; it cannot accept a study case or calculation action.
 
 ### Prompt contract
 
@@ -180,7 +180,7 @@ Create one deterministic prompt template for each UI checkpoint:
 
 - `OPEN_PROJECT`: open the approved ANSI `.OTI`, visibly verify `EXAMPLE`, take evidence, and stop on mismatch.
 - `LOAD_FLOW`: select only `Base Case`, run ETAP Load Flow, show the result view, take evidence, and stop.
-- `COORDINATION`: open only the existing `Main Feeder` Star coordination view, take evidence, and stop; do not invent a run action.
+- `COORDINATION`: open only the existing `Main Bus - Feeder 1` Star coordination view, take evidence, and stop; do not invent a run action.
 - `ARC_FLASH`: select only `Normal Operation`, run ETAP AC Arc Flash, show the result view, take evidence, and stop.
 
 Every prompt must state:
@@ -352,7 +352,7 @@ Otherwise it becomes `failed`, records the reason, and blocks downstream executi
 
 1. `OPEN_PROJECT`: exact visible project identity.
 2. `LOAD_FLOW`: exact `Base Case` and visible result state.
-3. `COORDINATION`: exact existing `Main Feeder` view.
+3. `COORDINATION`: exact existing `Main Bus - Feeder 1` view.
 4. `ARC_FLASH`: exact `Normal Operation` and visible result state.
 
 Each checkpoint keeps the original live acceptance gate from `MVP_MULTI_AGENT_PLAN.md`. No later checkpoint is enabled before its predecessor passes.

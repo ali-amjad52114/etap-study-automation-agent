@@ -20,12 +20,13 @@ from h_operator.contracts import (
     OperatorOutcome,
     OperatorStep,
 )
+from h_operator.adapter import HOperatorError
 
 
 EXPECTED_IDENTITIES = {
     CheckpointStep.OPEN_PROJECT: "EXAMPLE",
     CheckpointStep.LOAD_FLOW: "Base Case",
-    CheckpointStep.COORDINATION: "Main Feeder",
+    CheckpointStep.COORDINATION: "Main Bus - Feeder 1",
     CheckpointStep.ARC_FLASH: "Normal Operation",
 }
 
@@ -58,6 +59,9 @@ class OperatorCheckpointRunner:
         command = _command(step)
         try:
             outcome = self._executor.execute(command, screenshot_path)
+        except HOperatorError as exc:
+            # Adapter errors are stable, sanitized integration messages.
+            return self._failed(step, expected_identity, str(exc))
         except Exception:
             # Vendor/UI exceptions are deliberately collapsed at this boundary;
             # raw exceptions can contain credentials or unstable SDK details.
@@ -105,7 +109,7 @@ def _command(step: CheckpointStep) -> CheckpointCommand:
     if step is CheckpointStep.LOAD_FLOW:
         return CheckpointCommand(**common, study_case="Base Case")
     if step is CheckpointStep.COORDINATION:
-        return CheckpointCommand(**common, view="Main Feeder")
+        return CheckpointCommand(**common, view="Main Bus - Feeder 1")
     if step is CheckpointStep.ARC_FLASH:
         return CheckpointCommand(**common, study_case="Normal Operation")
     return CheckpointCommand(**common)

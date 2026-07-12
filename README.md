@@ -82,7 +82,7 @@ Execution should be driven by a manually approved, structured plan so that futur
     },
     {
       "type": "coordination",
-      "view": "Main Feeder"
+      "view": "Main Bus - Feeder 1"
     },
     {
       "type": "arc_flash",
@@ -165,6 +165,14 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[test]"
 .\.venv\Scripts\python.exe -m pytest -q
 ```
+
+Run one bounded live pass (requires an unlocked dedicated Windows desktop and a valid `.env`):
+
+```powershell
+.\.venv\Scripts\python.exe -u scripts\run_live_mvp.py
+```
+
+The live runner stops at the first failed checkpoint and never retries or resets automatically.
 
 ## Suggested next milestone
 

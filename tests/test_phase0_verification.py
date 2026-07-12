@@ -37,7 +37,7 @@ def test_canonical_plan_freezes_the_readme_mvp() -> None:
     assert plan.project_file == r"C:\ETAP Demo\Example-ANSI\EXAMPLE.OTI"
     assert [(item.type, item.study_case, item.view) for item in plan.studies] == [
         ("load_flow", "Base Case", None),
-        ("coordination", None, "Main Feeder"),
+        ("coordination", None, "Main Bus - Feeder 1"),
         ("arc_flash", "Normal Operation", None),
     ]
 
@@ -52,7 +52,7 @@ def test_canonical_plan_freezes_the_readme_mvp() -> None:
         lambda value: value["studies"].append(value["studies"][0].copy()),
         lambda value: value["studies"].__setitem__(1, value["studies"][0].copy()),
         lambda value: value["studies"][0].update(study_case="Not Base Case"),
-        lambda value: value["studies"][1].update(view="Not Main Feeder"),
+        lambda value: value["studies"][1].update(view="Not Main Bus - Feeder 1"),
         lambda value: value["studies"][2].update(study_case="Not Normal Operation"),
     ],
     ids=[

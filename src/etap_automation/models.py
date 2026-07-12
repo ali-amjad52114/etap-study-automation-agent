@@ -12,7 +12,7 @@ MVP_PROJECT = "EXAMPLE"
 MVP_PROJECT_FILE = r"C:\ETAP Demo\Example-ANSI\EXAMPLE.OTI"
 MVP_STUDIES = (
     ("load_flow", "study_case", "Base Case"),
-    ("coordination", "view", "Main Feeder"),
+    ("coordination", "view", "Main Bus - Feeder 1"),
     ("arc_flash", "study_case", "Normal Operation"),
 )
 

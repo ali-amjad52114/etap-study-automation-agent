@@ -57,8 +57,10 @@ class HCheckpointRunner:
             raise HOperatorError(
                 "final visible identity does not match the canonical checkpoint target"
             )
+        if result.screenshot is None:
+            raise HOperatorError("completed checkpoint has no discovered observation screenshot")
         saved, metadata = self._adapter.save_screenshot_with_metadata(
-            ScreenshotResource(session_id, str(answer["screenshot_key"])), screenshot_path
+            result.screenshot, screenshot_path
         )
         return OperatorOutcome(
             step=command.step,

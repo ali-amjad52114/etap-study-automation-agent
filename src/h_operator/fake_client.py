@@ -29,6 +29,9 @@ class FakeSessionScenario:
     resources: Mapping[tuple[str, str], bytes] = field(
         default_factory=lambda: {("screenshots", "open-project.png"): FAKE_PNG}
     )
+    # Explicitly models the resource derived from the latest observation event.
+    # It is intentionally independent of the answer's semantic screenshot label.
+    screenshot_resource: tuple[str, str] | None = None
     error: str | None = None
     error_code: str | None = None
     outcome: str | None = "success"
@@ -41,6 +44,7 @@ class FakeHClient:
         self.scenario = scenario or FakeSessionScenario()
         self.created: list[dict[str, Any]] = []
         self.cancelled: list[str] = []
+        self.resources_requested: list[tuple[str, str, str]] = []
         self._positions: dict[str, int] = {}
 
     def create_session(
@@ -77,8 +81,17 @@ class FakeHClient:
 
     def get_resource(self, session_id: str, bucket: str, key: str) -> bytes:
         self._positions[session_id]
+        self.resources_requested.append((session_id, bucket, key))
         return self.scenario.resources[(bucket, key)]
 
     def cancel(self, session_id: str) -> None:
         self._positions[session_id]
         self.cancelled.append(session_id)
+
+    def discover_latest_screenshot(self, session_id: str) -> tuple[str, str]:
+        self._positions[session_id]
+        if self.scenario.screenshot_resource is not None:
+            return self.scenario.screenshot_resource
+        if not self.scenario.resources:
+            raise KeyError("no fake screenshot resource")
+        return next(reversed(self.scenario.resources))

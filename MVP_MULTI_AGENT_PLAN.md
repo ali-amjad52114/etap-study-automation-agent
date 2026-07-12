@@ -131,7 +131,7 @@ Manual ETAP readiness checks:
 
 - approved project opens and its visible identity matches;
 - `Base Case` Load Flow can run in the demo;
-- existing `Main Feeder` coordination view can open;
+- existing `Main Bus - Feeder 1` coordination view can open;
 - `Normal Operation` AC Arc Flash can run;
 - no required action edits the model.
 
@@ -196,7 +196,7 @@ Load Flow is repeatable, ordered, evidenced, and independently retryable.
 ### Deliverables
 
 - Add `COORDINATION` only after successful `LOAD_FLOW`.
-- Open the existing approved `Main Feeder` Star/protection coordination view and capture it.
+- Open the existing approved `Main Bus - Feeder 1` Star/protection coordination view and capture it.
 - Do not invent a calculation run, modify settings, or alter the model; the README requires opening and capturing this view.
 
 ### Tests

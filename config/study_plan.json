@@ -8,7 +8,7 @@
     },
     {
       "type": "coordination",
-      "view": "Main Feeder"
+      "view": "Main Bus - Feeder 1"
     },
     {
       "type": "arc_flash",
@@ -16,4 +16,3 @@
     }
   ]
 }
-

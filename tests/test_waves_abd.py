@@ -29,7 +29,7 @@ def command(step: OperatorStep, **overrides) -> CheckpointCommand:
     if step is OperatorStep.LOAD_FLOW:
         values["study_case"] = "Base Case"
     elif step is OperatorStep.COORDINATION:
-        values["view"] = "Main Feeder"
+        values["view"] = "Main Bus - Feeder 1"
     elif step is OperatorStep.ARC_FLASH:
         values["study_case"] = "Normal Operation"
     values.update(overrides)
@@ -142,7 +142,7 @@ def test_adapter_rejects_answer_for_a_different_expected_step() -> None:
     "kwargs",
     [
         {"study_case": "Base Case"},
-        {"view": "Main Feeder"},
+        {"view": "Main Bus - Feeder 1"},
     ],
 )
 def test_open_project_rejects_irrelevant_selectors(kwargs) -> None:
@@ -154,11 +154,11 @@ def test_open_project_rejects_irrelevant_selectors(kwargs) -> None:
     ("step", "kwargs"),
     [
         (OperatorStep.LOAD_FLOW, {"study_case": None}),
-        (OperatorStep.LOAD_FLOW, {"view": "Main Feeder"}),
+        (OperatorStep.LOAD_FLOW, {"view": "Main Bus - Feeder 1"}),
         (OperatorStep.COORDINATION, {"view": None}),
         (OperatorStep.COORDINATION, {"study_case": "Base Case"}),
         (OperatorStep.ARC_FLASH, {"study_case": None}),
-        (OperatorStep.ARC_FLASH, {"view": "Main Feeder"}),
+        (OperatorStep.ARC_FLASH, {"view": "Main Bus - Feeder 1"}),
     ],
 )
 def test_study_commands_require_only_their_relevant_selector(step, kwargs) -> None:
@@ -195,7 +195,7 @@ EXPECTED_PROMPTS = {
     ),
     OperatorStep.COORDINATION: (
         'Execute exactly one checkpoint: COORDINATION. In project "EXAMPLE", open only the existing protection '
-        'coordination view "Main Feeder" and show it. Do not edit the electrical model, study settings, cases, '
+        'coordination view "Main Bus - Feeder 1" and show it. Do not edit the electrical model, study settings, cases, '
         'equipment, or files. Do not run any other study and do not interpret, approve, or recommend engineering '
         'results. If any identity, case, or view does not match exactly, stop and return failed. Capture one PNG '
         'screenshot of the visible final state and return only the required structured answer.'
@@ -242,7 +242,7 @@ def test_coordination_prompt_does_not_invent_a_calculation_run() -> None:
 
     assert "run coordination" not in prompt
     assert "calculate coordination" not in prompt
-    assert "main feeder" in prompt
+    assert "main bus - feeder 1" in prompt
 
 
 @pytest.mark.parametrize("step", list(OperatorStep))

@@ -18,12 +18,17 @@ import tempfile
 from threading import Lock
 from time import monotonic, sleep
 from typing import Any, Mapping, Protocol
+from urllib.parse import unquote, urlparse
+import re
 
 from .contracts import EvidenceMetadata
 
 
 MAX_SCREENSHOT_BYTES = 5 * 1024 * 1024
 MAX_PNG_DIMENSION = 16_384
+H_PRODUCTION_SCREENSHOT_BUCKET = (
+    "production-agentplatformb-screenshotbucketv2f6e481-kjfhukx6imoq"
+)
 
 
 class SessionState(StrEnum):
@@ -63,6 +68,7 @@ class SessionResult:
     error: str | None = None
     error_code: str | None = None
     outcome: str | None = None
+    screenshot: ScreenshotResource | None = None
 
 
 class HOperatorError(RuntimeError):
@@ -86,6 +92,7 @@ class HClientProtocol(Protocol):
     def get_answer(self, session_id: str) -> Mapping[str, Any] | None: ...
     def get_resource(self, session_id: str, bucket: str, key: str) -> bytes: ...
     def cancel(self, session_id: str) -> None: ...
+    def discover_latest_screenshot(self, session_id: str) -> tuple[str, str]: ...
 
 
 CHECKPOINT_ANSWER_SCHEMA: Mapping[str, Any] = {
@@ -131,7 +138,7 @@ class HDesktopAdapter:
         self._active_session_id: str | None = None
         self._expected_step: str | None = None
         self._owned_session_ids: set[str] = set()
-        self._screenshot_keys: dict[str, str] = {}
+        self._screenshot_keys: dict[str, tuple[str, str]] = {}
         self._waiting_session_ids: set[str] = set()
         self._cancel_requested: set[str] = set()
         self._state_lock = Lock()
@@ -233,8 +240,14 @@ class HDesktopAdapter:
                                 f"H returned step {answer['step']!r}; expected {expected_step!r}"
                             )
                         if answer["status"] == "completed":
+                            bucket, key = self._client.discover_latest_screenshot(session_id)
                             with self._state_lock:
-                                self._screenshot_keys[session_id] = str(answer["screenshot_key"])
+                                self._screenshot_keys[session_id] = (bucket, key)
+                            screenshot = ScreenshotResource(session_id, key, bucket)
+                        else:
+                            screenshot = None
+                    else:
+                        screenshot = None
                     return SessionResult(
                         session_id=session_id,
                         state=state,
@@ -242,6 +255,7 @@ class HDesktopAdapter:
                         error=_optional_str(status.get("error")),
                         error_code=_optional_str(status.get("error_code")),
                         outcome=_optional_str(status.get("outcome")),
+                        screenshot=screenshot,
                     )
                 sleep(poll_seconds)
             timeout_error = SessionTimeoutError(
@@ -285,7 +299,7 @@ class HDesktopAdapter:
         self, resource: ScreenshotResource, destination: Path
     ) -> tuple[Path, EvidenceMetadata]:
         """Atomically publish exact session evidence and return its provenance."""
-        if resource.bucket != "screenshots":
+        if resource.bucket not in {"screenshots", H_PRODUCTION_SCREENSHOT_BUCKET}:
             raise HOperatorError("only screenshot resources are allowed")
         resolved = destination.resolve()
         if not resolved.is_relative_to(self._evidence_root):
@@ -305,7 +319,7 @@ class HDesktopAdapter:
             raise HOperatorError("screenshot resource key must be a safe PNG path")
         with self._state_lock:
             expected_key = self._screenshot_keys.get(resource.session_id)
-        if expected_key != resource.key:
+        if expected_key != (resource.bucket, resource.key):
             raise HOperatorError("screenshot key was not returned by this session")
         payload = self._client.get_resource(
             resource.session_id, resource.bucket, resource.key
@@ -407,14 +421,90 @@ class _HaiSdkClient:
             return bytes(value.content)
         if hasattr(value, "read"):
             return bytes(value.read())
-        raise HOperatorError("unsupported H resource response type")
+        try:
+            chunks = iter(value)
+        except TypeError as exc:
+            raise HOperatorError("unsupported H resource response type") from exc
+        payload = bytearray()
+        for chunk in chunks:
+            if not isinstance(chunk, (bytes, bytearray, memoryview)):
+                raise HOperatorError("H resource stream returned a non-bytes chunk")
+            payload.extend(chunk)
+            if len(payload) > MAX_SCREENSHOT_BYTES:
+                raise HOperatorError("H resource stream exceeds the 5 MiB limit")
+        return bytes(payload)
 
     def cancel(self, session_id: str) -> None:
         self._client.sessions.cancel_session(session_id)
 
+    def discover_latest_screenshot(self, session_id: str) -> tuple[str, str]:
+        list_events = getattr(self._client.sessions, "list_session_events", None)
+        if not callable(list_events):
+            raise HOperatorError("hai-agents 1.0.6 list_session_events API is unavailable")
+        page = list_events(
+            session_id, size=200, sort=["-timestamp"], type="AgentEvent"
+        )
+        for event in _field(page, "items", ()):
+            if _field(event, "type") != "AgentEvent":
+                continue
+            data = _field(event, "data", {})
+            if _field(data, "kind") != "observation_event":
+                continue
+            image = _field(data, "image", None)
+            if image is None:
+                continue
+            if _field(image, "type") != "url" or _field(image, "media_type") != "image/png":
+                continue
+            parsed = _parse_observation_resource_url(str(_field(image, "source", "")), session_id)
+            if parsed is not None:
+                return parsed
+        raise HOperatorError("no safe PNG observation resource found for completed session")
+
 
 def _optional_str(value: Any) -> str | None:
     return None if value is None else str(value)
+
+
+def _field(value: Any, name: str, default: Any = None) -> Any:
+    if isinstance(value, Mapping):
+        return value.get(name, default)
+    return getattr(value, name, default)
+
+
+def _parse_observation_resource_url(source: str, session_id: str) -> tuple[str, str] | None:
+    try:
+        parsed = urlparse(source)
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError:
+        return None
+    if (
+        parsed.scheme != "https"
+        or hostname not in {"agp.eu.hcompany.ai", "agp.hcompany.ai"}
+        or port is not None
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.params
+        or parsed.query
+        or parsed.fragment
+    ):
+        return None
+    decoded_path = unquote(parsed.path)
+    if decoded_path != parsed.path:
+        return None
+    parts = decoded_path.split("/")
+    expected_prefix = ["", "api", "v1", "trajectories", session_id, "resources"]
+    if len(parts) != 9 or parts[:6] != expected_prefix or parts[7] != session_id:
+        return None
+    bucket, filename = parts[6], parts[8]
+    safe_component = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+    if (
+        not safe_component.fullmatch(bucket)
+        or not safe_component.fullmatch(filename)
+        or not filename.lower().endswith(".png")
+    ):
+        return None
+    return bucket, f"{session_id}/{filename}"
 
 
 def _validate_checkpoint_answer(value: Mapping[str, Any] | None) -> Mapping[str, Any]:
